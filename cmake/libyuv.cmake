@@ -2,7 +2,12 @@ add_library(libyuv OBJECT EXCLUDE_FROM_ALL)
 init_target(libyuv)
 add_library(tg_owt::libyuv ALIAS libyuv)
 
-link_libjpeg(libyuv)
+if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+    
+else()
+    link_libjpeg(libyuv)
+endif()
+
 
 set(libyuv_loc ${third_party_loc}/libyuv)
 
@@ -131,7 +136,11 @@ PUBLIC
     $<INSTALL_INTERFACE:${webrtc_includedir}/third_party/libyuv/include>
 )
 
+if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+else()
 target_compile_definitions(libyuv
 PRIVATE
     HAVE_JPEG
 )
+endif()
+

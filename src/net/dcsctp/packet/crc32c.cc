@@ -12,6 +12,11 @@
 #include <cstdint>
 
 #include "third_party/crc32c/src/include/crc32c/crc32c.h"
+#if defined(WEBRTC_IOS)
+#include "crc32c/crc32c.h"
+#else
+#include <crc32c/crc32c.h>
+#endif
 
 namespace dcsctp {
 
