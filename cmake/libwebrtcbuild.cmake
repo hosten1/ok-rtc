@@ -74,8 +74,8 @@ else()
         if(IOS)
             target_compile_definitions(libwebrtcbuild
                 INTERFACE
+                WEBRTC_MAC
                 WEbRTC_IOS
-                __native_client__
             )
         else()
             target_compile_definitions(libwebrtcbuild

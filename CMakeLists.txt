@@ -77,7 +77,14 @@ include(cmake/libpffft.cmake)
 include(cmake/librnnoise.cmake)
 include(cmake/libyuv.cmake)
 if(MAC)
+    message(STATUS "++++lym MAC")
     include(cmake/libsdkmacos.cmake)
+elseif(IOS)
+    message(STATUS "++++lym IOS")
+    include(cmake/libcrc32c.cmake)
+else()
+    message(STATUS "++++lym NOT MAC AND NOT IOS")
+    # include(cmake/libsdklinux.cmake)
 endif()
 
 
@@ -152,12 +159,15 @@ if (APPLE)
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+    # add_subdirectory(${webrtc_loc}/third_party/crc32c/src)
+
     # 设置头文件路径
     target_include_directories(ok-rtc PRIVATE
         ${third_party_loc}/openssl/arm64/include
         ${third_party_loc}/ffmpeg/arm64/include
         ${third_party_loc}/openh264/src/install/arm64/include
         ${third_party_loc}/opus/arm64/include/opus
+        ${third_party_loc}/libvpx/VPX.framework/Headers
     )
 
     # 设置库文件路径
@@ -167,6 +177,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
         ${third_party_loc}/openh264/src/install/arm64/lib
         ${third_party_loc}/opus/lib
     )
+
     target_link_libraries(ok-rtc PRIVATE
         ssl
         crypto
@@ -174,19 +185,21 @@ if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
         avformat
         avutil
         openh264
-        srtp
         vpx
-        crc32c
+        ok-rtc::libcrc32c
     )
 
     # 链接 iOS 框架
     target_link_libraries(ok-rtc PRIVATE
+        System
+        libc
         "-framework Foundation"
         "-framework AVFoundation"
         "-framework CoreMedia"
         "-framework CoreGraphics"
         "-framework UIKit"
         "-framework CoreAudio"
+        "-framework CoreFoundation"
     )
 
     # 链接 libvpx.framework
@@ -196,19 +209,19 @@ if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
     )
 
     # 设置平台特定标志
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
+    # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
 else()
     link_openssl(ok-rtc)
     link_ffmpeg(ok-rtc)
     link_opus(ok-rtc)
-    link_libabsl(ok-rtc)
     link_libopenh264(ok-rtc)
-    link_libsrtp(ok-rtc)
     link_libvpx(ok-rtc)
     link_crc32c(ok-rtc)
     link_dl(ok-rtc)
 endif()
 
+link_libsrtp(ok-rtc)
+link_libabsl(ok-rtc)
 
 if (OK_RTC_BUILD_AUDIO_BACKENDS AND (UNIX AND NOT APPLE))
     link_libalsa(ok-rtc)
@@ -2911,7 +2924,10 @@ else()
     target_compile_definitions(ok-rtc PRIVATE WEBRTC_EXTERNAL_SRTP)
 endif()
 if (NOT Crc32c_FOUND)
-    include(cmake/libcrc32c.cmake)
+    if(NOT IOS)
+        include(cmake/libcrc32c.cmake) 
+    endif()
+    
     list(APPEND export_targets libcrc32c)
 endif()
 
