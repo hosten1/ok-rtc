@@ -10,7 +10,7 @@ PRIVATE
 )
 
 nice_target_sources(libsdkmacos ${libsdkmacos_loc}
-PRIVATE
+    PRIVATE
     api/peerconnection/RTCIceCandidateErrorEvent+Private.h
     api/peerconnection/RTCIceCandidateErrorEvent.h
     api/peerconnection/RTCIceCandidateErrorEvent.mm
@@ -69,11 +69,6 @@ PRIVATE
     components/renderer/opengl/RTCDefaultShader.mm
     components/renderer/opengl/RTCI420TextureCache.h
     components/renderer/opengl/RTCI420TextureCache.mm
-    components/renderer/metal/RTCMTLI420Renderer.h
-    components/renderer/metal/RTCMTLI420Renderer.mm
-    components/renderer/metal/RTCMTLRenderer+Private.h
-    components/renderer/metal/RTCMTLRenderer.h
-    components/renderer/metal/RTCMTLRenderer.mm
     base/RTCCodecSpecificInfo.h
     base/RTCEncodedImage.h
     base/RTCEncodedImage.m
@@ -83,6 +78,7 @@ PRIVATE
     base/RTCMacros.h
     base/RTCMutableI420Buffer.h
     base/RTCMutableYUVPlanarBuffer.h
+
     # base/RTCRtpFragmentationHeader.h
     # base/RTCRtpFragmentationHeader.m
     base/RTCVideoCapturer.h
@@ -156,6 +152,7 @@ PRIVATE
     api/video_codec/RTCVideoEncoderVP9.mm
     api/peerconnection/RTCEncodedImage+Private.h
     api/peerconnection/RTCEncodedImage+Private.mm
+
     # api/peerconnection/RTCRtpFragmentationHeader+Private.h
     # api/peerconnection/RTCRtpFragmentationHeader+Private.mm
     api/peerconnection/RTCVideoCodecInfo+Private.h
@@ -271,8 +268,123 @@ PRIVATE
     api/RTCVideoRendererAdapter+Private.h
     api/RTCVideoRendererAdapter.h
     api/RTCVideoRendererAdapter.mm
-)
 
+    
+)
+if(IOS)
+    nice_target_sources(libsdkmacos ${libsdkmacos_loc}
+        PRIVATE
+
+        # ios files
+        helpers/RTCCameraPreviewView.h
+        helpers/RTCCameraPreviewView.m
+        helpers/UIDevice+RTCDevice.h
+        helpers/UIDevice+RTCDevice.mm
+        components/capturer/RTCCameraVideoCapturer.h
+        components/capturer/RTCCameraVideoCapturer.m
+        components/capturer/RTCFileVideoCapturer.h
+        components/capturer/RTCFileVideoCapturer.m
+        components/video_codec/UIDevice+H264Profile.h
+        components/video_codec/UIDevice+H264Profile.mm
+        api/peerconnection/RTCMediaConstraints+Private.h
+        api/peerconnection/RTCMediaConstraints.h
+        api/peerconnection/RTCMediaConstraints.mm
+        helpers/noop.mm
+        native/src/objc_network_monitor.h
+        native/src/objc_network_monitor.mm
+        native/api/audio_device_module.h
+        native/api/audio_device_module.mm
+
+        native/src/audio/audio_session_observer.h
+
+        native/src/audio/audio_device_ios.h
+        native/src/audio/audio_device_ios.mm
+        native/src/audio/audio_device_module_ios.h
+        native/src/audio/audio_device_module_ios.mm
+        native/src/audio/helpers.h
+        native/src/audio/helpers.mm
+        native/src/audio/voice_processing_audio_unit.h
+        native/src/audio/voice_processing_audio_unit.mm
+
+        components/renderer/opengl/RTCNV12TextureCache.h
+        components/renderer/opengl/RTCNV12TextureCache.m
+
+        components/renderer/opengl/RTCDisplayLinkTimer.h
+        components/renderer/opengl/RTCDisplayLinkTimer.m
+        components/renderer/opengl/RTCEAGLVideoView.h
+        components/renderer/opengl/RTCEAGLVideoView.m
+
+        components/renderer/opengl/RTCVideoViewShading.h
+        components/network/RTCNetworkMonitor+Private.h
+        components/network/RTCNetworkMonitor.h
+        components/network/RTCNetworkMonitor.mm
+        native/src/network_monitor_observer.h
+
+        components/audio/RTCAudioSession+Configuration.mm
+        components/audio/RTCAudioSession+Private.h
+        components/audio/RTCAudioSession.h
+        components/audio/RTCAudioSession.mm
+        components/audio/RTCAudioSessionConfiguration.h
+        components/audio/RTCAudioSessionConfiguration.m
+        components/audio/RTCNativeAudioSessionDelegateAdapter.h
+        components/audio/RTCNativeAudioSessionDelegateAdapter.mm
+
+        api/logging/RTCCallbackLogger.h
+        api/logging/RTCCallbackLogger.mm
+        api/peerconnection/RTCFileLogger.h
+        api/peerconnection/RTCFileLogger.mm
+
+        # components/renderer/metal/RTCMTLI420Renderer.h
+        # components/renderer/metal/RTCMTLI420Renderer.mm
+        # components/renderer/metal/RTCMTLNV12Renderer.h
+        # components/renderer/metal/RTCMTLNV12Renderer.mm
+        # components/renderer/metal/RTCMTLRGBRenderer.h
+        # components/renderer/metal/RTCMTLRGBRenderer.mm
+        # components/renderer/metal/RTCMTLRenderer+Private.h
+        # components/renderer/metal/RTCMTLRenderer.h
+        # components/renderer/metal/RTCMTLRenderer.mm
+        components/renderer/metal/RTCMTLVideoView.h
+        components/renderer/metal/RTCMTLVideoView.m
+    )
+else()
+    nice_target_sources(libsdkmacos ${libsdkmacos_loc}
+        PRIVATE
+        helpers/RTCCameraPreviewView.h
+        helpers/RTCCameraPreviewView.m
+        helpers/UIDevice+RTCDevice.h
+        helpers/UIDevice+RTCDevice.mm
+
+        components/renderer/metal/RTCMTLI420Renderer.h
+        components/renderer/metal/RTCMTLI420Renderer.mm
+        components/renderer/metal/RTCMTLNV12Renderer.h
+        components/renderer/metal/RTCMTLNV12Renderer.mm
+        components/renderer/metal/RTCMTLRGBRenderer.h
+        components/renderer/metal/RTCMTLRGBRenderer.mm
+        components/renderer/metal/RTCMTLRenderer+Private.h
+        components/renderer/metal/RTCMTLRenderer.h
+        components/renderer/metal/RTCMTLRenderer.mm
+
+        components/renderer/metal/RTCMTLNSVideoView.h
+        components/renderer/metal/RTCMTLNSVideoView.m
+
+        components/renderer/opengl/RTCNSGLVideoView.h
+        components/renderer/opengl/RTCNSGLVideoView.m
+    )
+endif()
+
+# if(IOS)
+#     target_include_directories(libsdkmacos
+#         PUBLIC
+#         $<BUILD_INTERFACE:${webrtc_loc}>
+#         $<BUILD_INTERFACE:${libsdkmacos_loc}>
+#         $<BUILD_INTERFACE:${libsdkmacos_loc}/base>
+#         $<BUILD_INTERFACE:${libsdkmacos_loc}/components/video_codec>
+#         $<INSTALL_INTERFACE:${webrtc_includedir}>
+#         $<INSTALL_INTERFACE:${webrtc_includedir}/sdk/objc>
+#         $<INSTALL_INTERFACE:${webrtc_includedir}/sdk/objc/base>
+#         $<INSTALL_INTERFACE:${webrtc_includedir}/sdk/objc/components/video_codec>
+#     )
+# endif()
 target_include_directories(libsdkmacos
 PUBLIC
     $<BUILD_INTERFACE:${webrtc_loc}>

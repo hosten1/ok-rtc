@@ -87,7 +87,7 @@ if(MAC)
 elseif(IOS)
     message(STATUS "++++lym IOS")
     set(TG_OWT_PACKAGED_BUILD 0)
-    # include(cmake/libcrc32c.cmake)
+    include(cmake/libsdkmacos.cmake)
 else()
     message(STATUS "++++lym NOT MAC AND NOT IOS")
     # include(cmake/libsdklinux.cmake)
@@ -218,6 +218,9 @@ if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
         "-framework UIKit"
         "-framework CoreAudio"
         "-framework CoreFoundation"
+        "-framework MetalKit"
+        "-framework Metal"
+        "-framework CoreVideo"
     )
 
     # 链接 libvpx.framework
@@ -246,6 +249,7 @@ if(APPLE)
         target_link_libraries(tg_owt PUBLIC tg_owt::libsdkmacos)
     elseif(CMAKE_SYSTEM_NAME STREQUAL "iOS")
         # iOS平台的配置
+        target_link_libraries(tg_owt PUBLIC tg_owt::libsdkmacos)
     endif()
 endif()
 
@@ -2681,7 +2685,7 @@ if (WIN32)
 endif()
 
 set(platform_export)
-if (APPLE AND NOT IOS)
+if (APPLE)
     set(platform_export
         libsdkmacos
     )
@@ -2905,9 +2909,10 @@ if (APPLE)
             modules/desktop_capture/win/window_capturer_win_gdi.h
         )
     else()
-        list(APPEND export_targets libsdkmacos)
+        
     endif()
-    
+
+ list(APPEND export_targets libsdkmacos)
 
     
 endif()
