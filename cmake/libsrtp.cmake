@@ -3,27 +3,54 @@ init_target(libsrtp)
 add_library(tg_owt::libsrtp ALIAS libsrtp)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+    message(STATUS "iOS target_include_directories ${CMAKE_SOURCE_DIR}")
+
     # 设置头文件路径
-    target_include_directories(ok-rtc PRIVATE
-        ${CMAKE_SOURCE_DIR}/third_party/openssl/arm64/include
+    target_include_directories(libsrtp PRIVATE
+        ${third_party_loc}/openssl/arm64/include
     )
 
     # 设置库文件路径
-    target_link_directories(ok-rtc PRIVATE
-        ${CMAKE_SOURCE_DIR}/third_party/openssl/lib
+    target_link_directories(libsrtp PRIVATE
+        ${third_party_loc}/openssl/arm64/lib
     )
-    target_link_libraries(ok-rtc PRIVATE
+    target_link_libraries(libsrtp PRIVATE
         ssl
         crypto
     )
 else()
-    link_libsrtp(ok-rtc)
+    link_libsrtp(libsrtp)
 endif()
 
 set(libsrtp_loc ${third_party_loc}/libsrtp)
 
 nice_target_sources(libsrtp ${libsrtp_loc}
-PRIVATE
+    PRIVATE
+
+    # includes
+    include/ekt.h
+    include/getopt_s.h
+    include/srtp.h
+    include/srtp_priv.h
+    include/ut_sim.h
+
+    # headers
+    crypto/include/aes.h
+    crypto/include/aes_icm.h
+    crypto/include/alloc.h
+    crypto/include/auth.h
+    crypto/include/cipher.h
+    crypto/include/crypto_kernel.h
+    crypto/include/crypto_types.h
+    crypto/include/datatypes.h
+    crypto/include/err.h
+    crypto/include/integers.h
+    crypto/include/key.h
+    crypto/include/null_auth.h
+    crypto/include/null_cipher.h
+    crypto/include/rdb.h
+    crypto/include/rdbx.h
+    crypto/include/stat.h
     crypto/cipher/aes_gcm_ossl.c
     crypto/cipher/aes_icm_ossl.c
     crypto/cipher/cipher.c
@@ -48,15 +75,19 @@ target_compile_definitions(libsrtp PRIVATE HAVE_CONFIG_H)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
     target_include_directories(libsrtp
-    PRIVATE
+        PRIVATE
         ${third_party_loc}/openssl/arm64/include
+        ${third_party_loc}/libsrtp/include
+        ${third_party_loc}/libsrtp/crypto/include
     )
 else()
 endif()
+
 target_include_directories(libsrtp
-PUBLIC
+    PUBLIC
     $<BUILD_INTERFACE:${libsrtp_loc}/include>
     $<BUILD_INTERFACE:${libsrtp_loc}/crypto/include>
+    $<BUILD_INTERFACE:${libsrtp_loc}/../libsrtp_config>
     $<INSTALL_INTERFACE:${webrtc_includedir}/third_party/libsrtp/include>
     $<INSTALL_INTERFACE:${webrtc_includedir}/third_party/libsrtp/crypto/include>
 )

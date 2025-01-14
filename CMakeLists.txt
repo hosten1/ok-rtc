@@ -80,14 +80,13 @@ include(cmake/libcrc32c.cmake)
 include(cmake/libopenh264.cmake)
 include(cmake/libpffft.cmake)
 include(cmake/librnnoise.cmake)
-include(cmake/libsrtp.cmake)
 include(cmake/libyuv.cmake)
 if(MAC)
     message(STATUS "++++lym MAC")
     include(cmake/libsdkmacos.cmake)
 elseif(IOS)
     message(STATUS "++++lym IOS")
-    include(cmake/libcrc32c.cmake)
+    # include(cmake/libcrc32c.cmake)
 else()
     message(STATUS "++++lym NOT MAC AND NOT IOS")
     # include(cmake/libsdklinux.cmake)
@@ -98,9 +97,6 @@ endif()
 if (TG_OWT_USE_PROTOBUF)
     add_subdirectory(cmake/protobuf)
 endif()
-
-add_library(ok-rtc)
-init_target(ok-rtc)
 
 add_library(tg_owt)
 init_target(tg_owt)
@@ -152,7 +148,6 @@ PRIVATE
     tg_owt::libcrc32c
     tg_owt::libpffft
     tg_owt::librnnoise
-    tg_owt::libsrtp
     tg_owt::libyuv
 )
 
@@ -178,7 +173,7 @@ PRIVATE
 )
 if (APPLE)
     if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-        target_link_libraries(ok-rtc PUBLIC ok-rtc::libsdkmacos)
+        target_link_libraries(tg_owt PUBLIC tg_owt::libsdkmacos)
     elseif(CMAKE_SYSTEM_NAME STREQUAL "iOS")
         # iOS平台的配置
     endif()
@@ -188,35 +183,38 @@ if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
     # add_subdirectory(${webrtc_loc}/third_party/crc32c/src)
 
     # 设置头文件路径
-    target_include_directories(ok-rtc PRIVATE
+    target_include_directories(tg_owt PRIVATE
         ${third_party_loc}/openssl/arm64/include
         ${third_party_loc}/ffmpeg/arm64/include
-        ${third_party_loc}/openh264/src/install/arm64/include
+        # ${third_party_loc}/openh264/src/install/arm64/include
         ${third_party_loc}/opus/arm64/include/opus
         ${third_party_loc}/libvpx/VPX.framework/Headers
+        ${third_party_loc}/abseil-cpp
+        ${third_party_loc}/abseil-cpp/absl
+        ${third_party_loc}/libsrtp/include
+        ${third_party_loc}/libsrtp/crypto/include
     )
 
     # 设置库文件路径
-    target_link_directories(ok-rtc PRIVATE
+    target_link_directories(tg_owt PRIVATE
         ${third_party_loc}/openssl/lib
         ${third_party_loc}/ffmpeg/lib
-        ${third_party_loc}/openh264/src/install/arm64/lib
+        # ${third_party_loc}/openh264/src/install/arm64/lib
         ${third_party_loc}/opus/lib
     )
 
-    target_link_libraries(ok-rtc PRIVATE
+    target_link_libraries(tg_owt PRIVATE
         ssl
         crypto
         avcodec
         avformat
         avutil
-        openh264
         vpx
-        ok-rtc::libcrc32c
+        tg_owt::libcrc32c
     )
 
     # 链接 iOS 框架
-    target_link_libraries(ok-rtc PRIVATE
+    target_link_libraries(tg_owt PRIVATE
         System
         libc
         "-framework Foundation"
@@ -229,7 +227,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
     )
 
     # 链接 libvpx.framework
-    target_link_libraries(ok-rtc PRIVATE
+    target_link_libraries(tg_owt PRIVATE
         "-F${third_party_loc}/libvpx" # 设置框架搜索路径
         "-framework libvpx" # 链接 libvpx.framework
     )
@@ -237,28 +235,21 @@ if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
     # 设置平台特定标志
     # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
 else()
-    link_openssl(ok-rtc)
-    link_ffmpeg(ok-rtc)
-    link_opus(ok-rtc)
-    link_libopenh264(ok-rtc)
-    link_libvpx(ok-rtc)
-    link_crc32c(ok-rtc)
-    link_dl(ok-rtc)
+    link_openssl(tg_owt)
+    link_ffmpeg(tg_owt)
+    link_opus(tg_owt)
+    link_libvpx(tg_owt)
+    link_crc32c(tg_owt)
+    link_dl(tg_owt)
 endif()
 
-link_libsrtp(ok-rtc)
-link_libabsl(ok-rtc)
-
-if (APPLE)
-    target_link_libraries(tg_owt PUBLIC tg_owt::libsdkmacos)
-endif()
-
-link_openssl(tg_owt)
-link_ffmpeg(tg_owt)
-link_opus(tg_owt)
+# link_libsrtp(tg_owt)
 link_libabsl(tg_owt)
 link_libopenh264(tg_owt)
-link_libvpx(tg_owt)
+
+if (APPLE AND NOT IOS)
+    target_link_libraries(tg_owt PUBLIC tg_owt::libsdkmacos)
+endif()
 
 if (TG_OWT_BUILD_AUDIO_BACKENDS AND (UNIX AND NOT APPLE))
     link_libalsa(tg_owt)
@@ -2692,7 +2683,7 @@ if (WIN32)
 endif()
 
 set(platform_export)
-if (APPLE)
+if (APPLE AND NOT IOS)
     set(platform_export
         libsdkmacos
     )
@@ -2709,7 +2700,7 @@ endif()
 if (APPLE)
     if(IOS)
         file(GLOB desktop_capture_sources modules/desktop_capture/*)
-        remove_target_sources(ok-rtc ${webrtc_loc}
+        remove_target_sources(tg_owt ${webrtc_loc}
 
             # screen drawer
             modules/desktop_capture/screen_drawer.cc
@@ -2926,10 +2917,8 @@ endif()
 
 set(export_targets
     ${tg_owt_export}
-    libcrc32c
     libpffft
     librnnoise
-    libsrtp
     libwebrtcbuild
     libyuv
     ${platform_export}
@@ -2949,7 +2938,7 @@ if (NOT SRTP_FOUND)
     include(cmake/libsrtp.cmake)
     list(APPEND export_targets libsrtp)
 else()
-    target_compile_definitions(ok-rtc PRIVATE WEBRTC_EXTERNAL_SRTP)
+    target_compile_definitions(tg_owt PRIVATE WEBRTC_EXTERNAL_SRTP)
 endif()
 if (NOT Crc32c_FOUND)
     if(NOT IOS)

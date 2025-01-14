@@ -2,127 +2,299 @@ add_library(libabsl OBJECT EXCLUDE_FROM_ALL)
 init_target(libabsl)
 add_library(tg_owt::libabsl ALIAS libabsl)
 
+# 创建一个别名库，方便其他项目依赖
 set(libabsl_loc ${third_party_loc}/abseil-cpp)
 
+# 设置编译定义
+target_compile_definitions(libabsl
+    PUBLIC
+    ABSL_ALLOCATOR_NOTHROW=1
+)
+
+# 设置目标平台相关的编译标志
+if(NOT WIN32)
+    target_compile_options(libabsl 
+    PRIVATE
+        -std=c++11
+        -Wall
+        -Wextra
+        -Wno-unused-parameter
+        -Wno-implicit-fallthrough
+        -Wno-sign-compare
+    )
+elseif(APPLE)
+    target_compile_options(libabsl 
+    PRIVATE
+        -std=c++11
+    )
+    target_compile_options(libabsl 
+    PRIVATE
+        -Wbool-conversion
+        -Wconstant-conversion
+        -Wenum-conversion
+        -Wint-conversion
+        -Wliteral-conversion
+        -Wnon-literal-null-conversion
+        -Wnull-conversion
+        -Wobjc-literal-conversion
+        -Wno-sign-conversion
+        -Wno-sign-compare
+        -Wstring-conversion
+    )
+elseif(MSVC)
+    target_compile_options(libabsl PRIVATE
+        /wd4005 # macro-redefinition
+        /wd4018 # sign-compare
+        /wd4068 # unknown pragma
+        /wd4702 # unreachable code
+    )
+    target_compile_definitions(libabsl PUBLIC
+        NOMINMAX # Don't define min and max macros (windows.h)
+        WIN32_LEAN_AND_MEAN # Reduce windows.h size
+        _CRT_SECURE_NO_WARNINGS
+        _SCL_SECURE_NO_WARNINGS
+        _ENABLE_EXTENDED_ALIGNED_STORAGE
+    )
+endif()
+
+# 根据平台添加不同的目标文件
+if(NOT WIN32)
+    # 在非 Windows 系统上添加 Abseil 时间相关的源文件
+    nice_target_sources(libabsl ${libabsl_loc}
+        PRIVATE
+        absl/time/time.cc
+        absl/time/format.cc
+        absl/time/clock.cc
+        absl/time/civil_time.cc
+    )
+endif()
+
+# 将源文件添加到对象库中
 nice_target_sources(libabsl ${libabsl_loc}
-PRIVATE
-    # absl/base/dynamic_annotations.cc
-    # absl/base/internal/cycleclock.cc
-    # absl/base/internal/exception_safety_testing.cc
-    # absl/base/internal/exponential_biased.cc
-    # absl/base/internal/low_level_alloc.cc
-    # absl/base/internal/periodic_sampler.cc
-    absl/base/internal/raw_logging.cc
-    # absl/base/internal/scoped_set_env.cc
-    # absl/base/internal/spinlock.cc
-    # absl/base/internal/spinlock_wait.cc
-    # absl/base/internal/strerror.cc
-    # absl/base/internal/sysinfo.cc
-    # absl/base/internal/thread_identity.cc
-    absl/base/internal/throw_delegate.cc
-    # absl/base/internal/unscaledcycleclock.cc
-    # absl/base/log_severity.cc
-    # absl/container/internal/hash_generator_testing.cc
-    # absl/container/internal/hashtablez_sampler.cc
-    # absl/container/internal/hashtablez_sampler_force_weak_definition.cc
-    # absl/container/internal/raw_hash_set.cc
-    # absl/container/internal/test_instance_tracker.cc
-    # absl/debugging/failure_signal_handler.cc
-    # absl/debugging/internal/address_is_readable.cc
-    # absl/debugging/internal/demangle.cc
-    # absl/debugging/internal/elf_mem_image.cc
-    # absl/debugging/internal/examine_stack.cc
-    # absl/debugging/internal/stack_consumption.cc
-    # absl/debugging/internal/vdso_support.cc
-    # absl/debugging/leak_check.cc
-    # absl/debugging/leak_check_disable.cc
-    # absl/debugging/stacktrace.cc
-    # absl/debugging/symbolize.cc
-    # absl/flags/flag.cc
-    # absl/flags/flag_test_defs.cc
-    # absl/flags/internal/commandlineflag.cc
-    # absl/flags/internal/flag.cc
-    # absl/flags/internal/program_name.cc
-    # absl/flags/internal/registry.cc
-    # absl/flags/internal/type_erased.cc
-    # absl/flags/internal/usage.cc
-    # absl/flags/marshalling.cc
-    # absl/flags/parse.cc
-    # absl/flags/usage.cc
-    # absl/flags/usage_config.cc
-    # absl/hash/internal/city.cc
-    # absl/hash/internal/hash.cc
-    absl/numeric/int128.cc
-    # absl/random/discrete_distribution.cc
-    # absl/random/gaussian_distribution.cc
-    # absl/random/internal/chi_square.cc
-    # absl/random/internal/distribution_test_util.cc
-    # absl/random/internal/nanobenchmark.cc
-    # absl/random/internal/pool_urbg.cc
-    # absl/random/internal/randen.cc
-    # absl/random/internal/randen_detect.cc
-    # absl/random/internal/randen_hwaes.cc
-    # absl/random/internal/randen_slow.cc
-    # absl/random/internal/seed_material.cc
-    # absl/random/seed_gen_exception.cc
-    # absl/random/seed_sequences.cc
-    # absl/status/status.cc
-    # absl/status/status_payload_printer.cc
-    absl/strings/ascii.cc
-    absl/strings/charconv.cc
-    absl/strings/cord.cc
-    absl/strings/escaping.cc
+ PRIVATE
+    absl/strings/charconv.h
+    absl/strings/numbers.h
+    absl/strings/match.cc
+    absl/strings/str_format.h
+    absl/strings/str_split.h
+    absl/strings/internal/stl_type_traits.h
     absl/strings/internal/charconv_bigint.cc
+    absl/strings/internal/char_map.h
+    absl/strings/internal/pow10_helper.h
     absl/strings/internal/charconv_parse.cc
-    absl/strings/internal/escaping.cc
+    absl/strings/internal/memutil.h
+    absl/strings/internal/str_format/float_conversion.h
+    absl/strings/internal/str_format/arg.cc
+    absl/strings/internal/str_format/float_conversion.cc
+    absl/strings/internal/str_format/output.cc
+    absl/strings/internal/str_format/parser.h
+    absl/strings/internal/str_format/arg.h
+    absl/strings/internal/str_format/bind.cc
+    absl/strings/internal/str_format/parser.cc
+    absl/strings/internal/str_format/extension.cc
+    absl/strings/internal/str_format/output.h
+    absl/strings/internal/str_format/checker.h
+    absl/strings/internal/str_format/extension.h
+    absl/strings/internal/str_format/bind.h
+    absl/strings/internal/str_join_internal.h
+    absl/strings/internal/charconv_bigint.h
     absl/strings/internal/memutil.cc
     absl/strings/internal/ostringstream.cc
     absl/strings/internal/pow10_helper.cc
-    absl/strings/internal/str_format/arg.cc
-    absl/strings/internal/str_format/bind.cc
-    absl/strings/internal/str_format/extension.cc
-    absl/strings/internal/str_format/float_conversion.cc
-    absl/strings/internal/str_format/output.cc
-    absl/strings/internal/str_format/parser.cc
     absl/strings/internal/utf8.cc
-    absl/strings/match.cc
-    absl/strings/numbers.cc
-    absl/strings/str_cat.cc
-    absl/strings/str_replace.cc
-    absl/strings/str_split.cc
+    absl/strings/internal/resize_uninitialized.h
+    absl/strings/internal/ostringstream.h
+    absl/strings/internal/charconv_parse.h
+    absl/strings/internal/utf8.h
+    absl/strings/internal/str_split_internal.h
+    absl/strings/str_replace.h
     absl/strings/string_view.cc
+    absl/strings/str_join.h
+    absl/strings/str_cat.cc
+    absl/strings/ascii.h
+    absl/strings/escaping.h
+    absl/strings/match.h
+    absl/strings/ascii.cc
+    absl/strings/numbers.cc
+    absl/strings/charconv.cc
+    absl/strings/strip.h
+    absl/strings/str_split.cc
     absl/strings/substitute.cc
-    # absl/synchronization/barrier.cc
-    # absl/synchronization/blocking_counter.cc
-    # absl/synchronization/internal/create_thread_identity.cc
-    # absl/synchronization/internal/graphcycles.cc
-    # absl/synchronization/internal/per_thread_sem.cc
-    # absl/synchronization/internal/waiter.cc
-    # absl/synchronization/mutex.cc
-    # absl/synchronization/notification.cc
-    # absl/time/civil_time.cc
-    # absl/time/clock.cc
-    # absl/time/duration.cc
-    # absl/time/format.cc
-    # absl/time/internal/cctz/src/civil_time_detail.cc
-    # absl/time/internal/cctz/src/time_zone_fixed.cc
-    # absl/time/internal/cctz/src/time_zone_format.cc
-    # absl/time/internal/cctz/src/time_zone_if.cc
-    # absl/time/internal/cctz/src/time_zone_impl.cc
-    # absl/time/internal/cctz/src/time_zone_info.cc
-    # absl/time/internal/cctz/src/time_zone_libc.cc
-    # absl/time/internal/cctz/src/time_zone_lookup.cc
-    # absl/time/internal/cctz/src/time_zone_posix.cc
-    # absl/time/internal/cctz/src/zone_info_source.cc
-    # absl/time/internal/test_util.cc
-    # absl/time/time.cc
-    # absl/types/bad_any_cast.cc
+    absl/strings/substitute.h
+    absl/strings/escaping.cc
+    absl/strings/string_view.h
+    absl/strings/str_replace.cc
+    absl/strings/str_cat.h
+    absl/types/bad_variant_access.h
+    absl/types/bad_any_cast.h
+    absl/types/bad_any_cast.cc
+    absl/types/internal/variant.h
+    absl/types/optional.h
+    absl/types/bad_optional_access.h
     absl/types/bad_optional_access.cc
+    absl/types/span.h
     absl/types/bad_variant_access.cc
+    absl/types/any.h
+    absl/types/optional.cc
+    absl/types/variant.h
+    absl/memory/memory.h
+    absl/synchronization/blocking_counter.h
+    absl/synchronization/blocking_counter.cc
+    absl/synchronization/notification.h
+    absl/synchronization/mutex.cc
+    absl/synchronization/barrier.h
+    absl/synchronization/internal/per_thread_sem.cc
+    absl/synchronization/internal/per_thread_sem.h
+    absl/synchronization/internal/graphcycles.h
+    absl/synchronization/internal/waiter.h
+    absl/synchronization/internal/thread_pool.h
+    absl/synchronization/internal/create_thread_identity.cc
+    absl/synchronization/internal/waiter.cc
+    absl/synchronization/internal/create_thread_identity.h
+    absl/synchronization/internal/kernel_timeout.h
+    absl/synchronization/internal/graphcycles.cc
+    absl/synchronization/barrier.cc
+    absl/synchronization/notification.cc
+    absl/synchronization/mutex.h
+    absl/hash/internal/hash.cc
+    absl/hash/internal/spy_hash_state.h
+    absl/hash/internal/print_hash_of.cc
+    absl/hash/internal/city.h
+    absl/hash/internal/city.cc
+    absl/hash/internal/hash.h
+    absl/hash/hash.h
+    absl/debugging/symbolize.cc
+    absl/debugging/failure_signal_handler.h
+    absl/debugging/failure_signal_handler.cc
+    absl/debugging/stacktrace.h
+    absl/debugging/symbolize.h
+    absl/debugging/leak_check_disable.cc
+    absl/debugging/leak_check.h
+    absl/debugging/internal/stacktrace_config.h
+    absl/debugging/internal/examine_stack.h
+    absl/debugging/internal/examine_stack.cc
+    absl/debugging/internal/vdso_support.cc
+    absl/debugging/internal/stack_consumption.cc
+    absl/debugging/internal/demangle.h
+    absl/debugging/internal/symbolize.h
+    absl/debugging/internal/address_is_readable.h
+    absl/debugging/internal/stack_consumption.h
+    absl/debugging/internal/address_is_readable.cc
+    absl/debugging/internal/elf_mem_image.h
+    absl/debugging/internal/elf_mem_image.cc
+    absl/debugging/internal/demangle.cc
+    absl/debugging/internal/vdso_support.h
+    absl/debugging/leak_check.cc
+    absl/debugging/stacktrace.cc
+    absl/meta/type_traits.h
+    absl/algorithm/algorithm.h
+    absl/algorithm/container.h
+    absl/time/time.h
+    absl/time/internal/cctz/include/cctz/civil_time.h
+    absl/time/internal/cctz/include/cctz/time_zone.h
+    absl/time/internal/cctz/include/cctz/zone_info_source.h
+    absl/time/internal/cctz/include/cctz/civil_time_detail.h
+    absl/time/internal/cctz/src/time_zone_format.cc
+    absl/time/internal/cctz/src/time_zone_fixed.h
+    absl/time/internal/cctz/src/time_zone_if.h
+    absl/time/internal/cctz/src/time_zone_impl.cc
+    absl/time/internal/cctz/src/time_zone_lookup.cc
+    absl/time/internal/cctz/src/time_zone_info.cc
+    absl/time/internal/cctz/src/time_zone_if.cc
+    absl/time/internal/cctz/src/time_zone_fixed.cc
+    absl/time/internal/cctz/src/zone_info_source.cc
+    absl/time/internal/cctz/src/time_zone_libc.cc
+    absl/time/internal/cctz/src/time_zone_posix.h
+    absl/time/internal/cctz/src/tzfile.h
+    absl/time/internal/cctz/src/time_zone_libc.h
+    absl/time/internal/cctz/src/civil_time_detail.cc
+    absl/time/internal/cctz/src/time_zone_info.h
+    absl/time/internal/cctz/src/time_zone_impl.h
+    absl/time/internal/cctz/src/time_zone_posix.cc
+    absl/time/civil_time.h
+    absl/time/clock.cc
+    absl/time/duration.cc
+    absl/time/civil_time.cc
+    absl/time/format.cc
+    absl/time/time.cc
+    absl/time/clock.h
+    absl/container/node_hash_map.h
+    absl/container/flat_hash_map.h
+    absl/container/fixed_array.h
+    absl/container/internal/compressed_tuple.h
+    absl/container/internal/container_memory.h
+    absl/container/internal/node_hash_policy.h
+    absl/container/internal/raw_hash_set.h
+    absl/container/internal/hash_function_defaults.h
+    absl/container/internal/hashtablez_sampler.h
+    absl/container/internal/hashtablez_force_sampling.cc
+    absl/container/internal/raw_hash_set.cc
+    absl/container/internal/hashtable_debug.h
+    absl/container/internal/raw_hash_map.h
+    absl/container/internal/have_sse.h
+    absl/container/internal/layout.h
+    absl/container/internal/hashtable_debug_hooks.h
+    absl/container/internal/hashtablez_sampler_force_weak_definition.cc
+    absl/container/internal/hash_policy_traits.h
+    absl/container/internal/common.h
+    absl/container/internal/tracked.h
+    absl/container/internal/hashtablez_sampler.cc
+    absl/container/internal/counting_allocator.h
+    absl/container/inlined_vector.h
+    absl/container/flat_hash_set.h
+    absl/container/node_hash_set.h
+    absl/numeric/int128.cc
+    absl/numeric/int128.h
+    absl/base/policy_checks.h
+    absl/base/port.h
+    absl/base/config.h
+    absl/base/casts.h
+    absl/base/internal/spinlock.h
+    absl/base/internal/spinlock_wait.cc
+    absl/base/internal/cycleclock.cc
+    absl/base/internal/scheduling_mode.h
+    absl/base/internal/per_thread_tls.h
+    absl/base/internal/spinlock.cc
+    absl/base/internal/unscaledcycleclock.cc
+    absl/base/internal/endian.h
+    absl/base/internal/sysinfo.h
+    absl/base/internal/tsan_mutex_interface.h
+    absl/base/internal/thread_identity.h
+    absl/base/internal/unaligned_access.h
+    absl/base/internal/sysinfo.cc
+    absl/base/internal/raw_logging.cc
+    absl/base/internal/direct_mmap.h
+    absl/base/internal/unscaledcycleclock.h
+    absl/base/internal/throw_delegate.cc
+    absl/base/internal/invoke.h
+    absl/base/internal/pretty_function.h
+    absl/base/internal/inline_variable.h
+    absl/base/internal/cycleclock.h
+    absl/base/internal/low_level_alloc.h
+    absl/base/internal/atomic_hook.h
+    absl/base/internal/identity.h
+    absl/base/internal/low_level_scheduling.h
+    absl/base/internal/raw_logging.h
+    absl/base/internal/thread_identity.cc
+    absl/base/internal/throw_delegate.h
+    absl/base/internal/low_level_alloc.cc
+    absl/base/internal/hide_ptr.h
+    absl/base/internal/spinlock_wait.h
+    absl/base/internal/bits.h
+    absl/base/attributes.h
+    absl/base/const_init.h
+    absl/base/macros.h
+    absl/base/thread_annotations.h
+    absl/base/dynamic_annotations.cc
+    absl/base/optimization.h
+    absl/base/log_severity.h
+    absl/base/call_once.h
+    absl/base/dynamic_annotations.h
+    absl/utility/utility.h
 )
-
+# 设置目标的包含目录
 target_include_directories(libabsl
-PUBLIC
+ PUBLIC
     $<BUILD_INTERFACE:${libabsl_loc}>
     $<INSTALL_INTERFACE:${webrtc_includedir}/third_party/abseil-cpp>
 )
