@@ -135,7 +135,7 @@ nice_target_sources(libabsl ${libabsl_loc}
     absl/types/span.h
     absl/types/bad_variant_access.cc
     absl/types/any.h
-    absl/types/optional.cc
+    # absl/types/optional.cc
     absl/types/variant.h
     absl/memory/memory.h
     absl/synchronization/blocking_counter.h
