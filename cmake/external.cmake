@@ -126,6 +126,8 @@ function(link_libabsl target_name)
     endif()
     if (NOT absl_FOUND)
         target_link_libraries(${target_name} PRIVATE tg_owt::libabsl)
+        target_include_directories(${target_name} SYSTEM PRIVATE ${libabsl_loc}/absl)
+        target_include_directories(${target_name} SYSTEM PRIVATE ${libabsl_loc}/)
     endif()
 endfunction()
 
@@ -148,7 +150,7 @@ endfunction()
 
 # libSRTP
 function(link_libsrtp target_name)
-    if(OK_RTC_PACKAGED_BUILD)
+    if(TG_OWT_PACKAGED_BUILD)
         find_package(PkgConfig REQUIRED)
         pkg_check_modules(SRTP libsrtp2)
 
@@ -159,7 +161,9 @@ function(link_libsrtp target_name)
     endif()
 
     if(NOT SRTP_FOUND)
-        target_link_libraries(${target_name} PRIVATE ok-rtc::libsrtp)
+        target_include_directories(${target_name} SYSTEM PRIVATE ${libsrtp_loc}/crypto/include)
+        target_include_directories(${target_name} SYSTEM PRIVATE ${libsrtp_loc}/include)
+        target_link_libraries(${target_name} PRIVATE tg_owt::libsrtp)
     endif()
 endfunction()
 # libvpx

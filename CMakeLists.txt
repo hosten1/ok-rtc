@@ -171,13 +171,6 @@ PRIVATE
     ${libvpx_yasm_objects}
     ${libopenh264_yasm_objects}
 )
-if (APPLE)
-    if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-        target_link_libraries(tg_owt PUBLIC tg_owt::libsdkmacos)
-    elseif(CMAKE_SYSTEM_NAME STREQUAL "iOS")
-        # iOS平台的配置
-    endif()
-endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
     # add_subdirectory(${webrtc_loc}/third_party/crc32c/src)
@@ -189,10 +182,10 @@ if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
         # ${third_party_loc}/openh264/src/install/arm64/include
         ${third_party_loc}/opus/arm64/include/opus
         ${third_party_loc}/libvpx/VPX.framework/Headers
-        ${third_party_loc}/abseil-cpp
-        ${third_party_loc}/abseil-cpp/absl
-        ${third_party_loc}/libsrtp/include
-        ${third_party_loc}/libsrtp/crypto/include
+        # ${third_party_loc}/abseil-cpp
+        # ${third_party_loc}/abseil-cpp/absl
+        # ${third_party_loc}/libsrtp/include
+        # ${third_party_loc}/libsrtp/crypto/include
     )
 
     # 设置库文件路径
@@ -243,12 +236,16 @@ else()
     link_dl(tg_owt)
 endif()
 
-# link_libsrtp(tg_owt)
+link_libsrtp(tg_owt)
 link_libabsl(tg_owt)
 link_libopenh264(tg_owt)
 
-if (APPLE AND NOT IOS)
-    target_link_libraries(tg_owt PUBLIC tg_owt::libsdkmacos)
+if(APPLE)
+    if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+        target_link_libraries(tg_owt PUBLIC tg_owt::libsdkmacos)
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+        # iOS平台的配置
+    endif()
 endif()
 
 if (TG_OWT_BUILD_AUDIO_BACKENDS AND (UNIX AND NOT APPLE))
@@ -2699,7 +2696,6 @@ if (is_x86 OR is_x64)
 endif()
 if (APPLE)
     if(IOS)
-        file(GLOB desktop_capture_sources modules/desktop_capture/*)
         remove_target_sources(tg_owt ${webrtc_loc}
 
             # screen drawer
